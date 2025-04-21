@@ -15,6 +15,10 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/users", getUsers)
+	router.GET("/users/:id",getUserByID)
+	router.POST("/users",createUser)
+	router.PUT("/users/:id",updateUser)
+	router.DELETE("/users/:id",deleteUser)
 
 	router.Run("localhost:8080")
 }
