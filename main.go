@@ -41,3 +41,14 @@ func getUserByID(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found."})
 }
+
+func createUser(c *gin.Context) {
+	var newUser models.User
+
+	if err := c.BindJSON(&newUser); err != nil {
+		return
+	}
+
+	users = append(users, newUser)
+	c.IndentedJSON(http.StatusCreated, newUser)
+}
