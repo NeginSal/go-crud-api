@@ -52,3 +52,22 @@ func createUser(c *gin.Context) {
 	users = append(users, newUser)
 	c.IndentedJSON(http.StatusCreated, newUser)
 }
+
+func updateUser(c *gin.Context) {
+	id := c.Param("id")
+	var updatedUser models.User
+
+	if err := c.BindJSON(&updatedUser); err != nil {
+		return
+	}
+
+	for i, user := range users {
+		if id == strconv.Itoa(user.ID) {
+			users[i] = updatedUser
+			c.IndentedJSON(http.StatusOK, updatedUser)
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User Not Found"})
+}
