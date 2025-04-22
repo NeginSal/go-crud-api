@@ -71,3 +71,16 @@ func updateUser(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User Not Found"})
 }
+
+func deleteUser(c *gin.Context) {
+	id := c.Param("id")
+
+	for i, user := range users {
+		if id == strconv.Itoa(user.ID) {
+			users = append(users[:i], users[i+1:]...)
+			c.IndentedJSON(http.StatusOK, gin.H{"message": "user deleted"})
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
+}
