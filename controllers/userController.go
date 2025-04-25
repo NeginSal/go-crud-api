@@ -1,74 +1,140 @@
 package controllers
 
 import (
+	"context"
+	"crud-api-go/config"
 	"crud-api-go/models"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var users = []models.User{
-	{ID: 1, Name: "mario", Email: "mario@gmail.com"},
-	{ID: 2, Name: "luigi", Email: "luigi@gmail.com"},
-}
+var userCollection *mongo.Collection = config.DB.Collection("users")
 
-
+// GET /users
 func GetUsers(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, users)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cursur, err := userCollection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error fetching users"})
+		return
+	}
+	defer cursur.Close(ctx)
+
+	var users []models.User
+	if err := cursur.All(ctx, &users); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error parsing users"})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+
 }
 
 func GetUserByID(c *gin.Context) {
-	id := c.Param("id")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	for _, user := range users {
-		if id == strconv.Itoa(user.ID) {
-			c.IndentedJSON(http.StatusOK, user)
-			return
-		}
+	idParam := c.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(idParam)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID Format"})
+		return
 	}
 
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found."})
+	var user models.User
+	err = userCollection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }
 
 func CreateUser(c *gin.Context) {
-	var newUser models.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
+	var newUser models.User
 	if err := c.BindJSON(&newUser); err != nil {
-		return
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 	}
 
-	users = append(users, newUser)
-	c.IndentedJSON(http.StatusCreated, newUser)
+	newUser.ID = primitive.NewObjectID()
+	_, err := userCollection.InsertOne(ctx, newUser)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+		return
+	}
+	c.JSON(http.StatusCreated, newUser)
+
 }
 
 func UpdateUser(c *gin.Context) {
-	id := c.Param("id")
-	var updatedUser models.User
+	idParam := c.Param("id")
 
-	if err := c.BindJSON(&updatedUser); err != nil {
+	objectId, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	for i, user := range users {
-		if id == strconv.Itoa(user.ID) {
-			users[i] = updatedUser
-			c.IndentedJSON(http.StatusOK, updatedUser)
-			return
-		}
+	var updatedUser models.User
+	if err := c.BindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
 	}
 
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User Not Found"})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	update := bson.M{
+		"$set": bson.M{
+			"name":  updatedUser.Name,
+			"email": updatedUser.Email,
+		},
+	}
+
+	res, err := userCollection.UpdateOne(ctx, bson.M{"_id": objectId}, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		return
+	}
+
+	if res.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
 
 func DeleteUser(c *gin.Context) {
-	id := c.Param("id")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	for i, user := range users {
-		if id == strconv.Itoa(user.ID) {
-			users = append(users[:i], users[i+1:]...)
-			c.IndentedJSON(http.StatusOK, gin.H{"message": "user deleted"})
-			return
-		}
+	idParam := c.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
+
+	res, err := userCollection.DeleteOne(ctx, bson.M{"_id": objectId})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
+		return
+	}
+
+	if res.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
 }
