@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"crud-api-go/config"
-	"crud-api-go/models"
+	"crud-api-go/model"
 	"net/http"
 	"time"
 
@@ -13,14 +13,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var userCollection *mongo.Collection = config.DB.Collection("users")
+func getUserCollection() *mongo.Collection {
+	return config.DB.Collection("users")
+}
 
 // GET /users
 func GetUsers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursur, err := userCollection.Find(ctx, bson.M{})
+	cursur, err := getUserCollection().Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error fetching users"})
 		return
@@ -49,7 +51,7 @@ func GetUserByID(c *gin.Context) {
 	}
 
 	var user models.User
-	err = userCollection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&user)
+	err = getUserCollection().FindOne(ctx, bson.M{"_id": objectId}).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
@@ -64,10 +66,11 @@ func CreateUser(c *gin.Context) {
 	var newUser models.User
 	if err := c.BindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
 	}
 
 	newUser.ID = primitive.NewObjectID()
-	_, err := userCollection.InsertOne(ctx, newUser)
+	_, err := getUserCollection().InsertOne(ctx, newUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 		return
@@ -101,14 +104,14 @@ func UpdateUser(c *gin.Context) {
 		},
 	}
 
-	res, err := userCollection.UpdateOne(ctx, bson.M{"_id": objectId}, update)
+	res, err := getUserCollection().UpdateOne(ctx, bson.M{"_id": objectId}, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}
 
 	if res.MatchedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
@@ -123,9 +126,10 @@ func DeleteUser(c *gin.Context) {
 	objectId, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
 	}
 
-	res, err := userCollection.DeleteOne(ctx, bson.M{"_id": objectId})
+	res, err := getUserCollection().DeleteOne(ctx, bson.M{"_id": objectId})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
 		return
