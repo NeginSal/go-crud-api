@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,6 +17,8 @@ import (
 func getUserCollection() *mongo.Collection {
 	return config.DB.Collection("users")
 }
+
+var validate = validator.New()
 
 // GET /users
 func GetUsers(c *gin.Context) {
@@ -69,6 +72,11 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	if err := validate.Struct(newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	newUser.ID = primitive.NewObjectID()
 	_, err := getUserCollection().InsertOne(ctx, newUser)
 	if err != nil {
@@ -91,6 +99,11 @@ func UpdateUser(c *gin.Context) {
 	var updatedUser models.User
 	if err := c.BindJSON(&updatedUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
+	}
+
+	if err := validate.Struct(updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
