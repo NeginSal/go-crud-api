@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func GetUsers(c *gin.Context) {
 	}
 	defer cursur.Close(ctx)
 
-	var users []models.User
+	var users []model.User
 	if err := cursur.All(ctx, &users); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error parsing users"})
 		return
@@ -53,7 +53,7 @@ func GetUserByID(c *gin.Context) {
 		return
 	}
 
-	var user models.User
+	var user model.User
 	err = getUserCollection().FindOne(ctx, bson.M{"_id": objectId}).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -66,7 +66,7 @@ func CreateUser(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var newUser models.User
+	var newUser model.User
 	if err := c.BindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -96,7 +96,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var updatedUser models.User
+	var updatedUser model.User
 	if err := c.BindJSON(&updatedUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return

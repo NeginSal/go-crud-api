@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("my_secret_key") // 🔥 کلید امضای توکن (اینو بعداً تو env مخفی میکنیم)
+var jwtKey = []byte("my_secret_key") 
 
 type Claims struct {
 	Email string `json:"email"`
