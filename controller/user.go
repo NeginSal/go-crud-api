@@ -37,7 +37,16 @@ func GetUsers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error parsing users"})
 		return
 	}
-	c.JSON(http.StatusOK, users)
+
+	var userslist []model.UserResponse
+	for _, u := range users {
+		userslist = append(userslist, model.UserResponse{
+			ID:    u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+		})
+	}
+	c.JSON(http.StatusOK, userslist)
 
 }
 
@@ -83,8 +92,11 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 		return
 	}
-	c.JSON(http.StatusCreated, newUser)
-
+	c.JSON(http.StatusCreated, gin.H{
+		"id":    newUser.ID.Hex(),
+		"name":  newUser.Name,
+		"email": newUser.Email,
+	})
 }
 
 func UpdateUser(c *gin.Context) {
