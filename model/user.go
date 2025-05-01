@@ -19,3 +19,21 @@ type AuthResponse struct {
 	Token string       `json:"token"`
 	User  UserResponse `json:"user"`
 }
+
+type SignupInput struct {
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type LoginInput struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type CreateUserInput struct {
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+

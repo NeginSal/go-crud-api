@@ -13,31 +13,47 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Signup godoc
+// @Summary Register a new user
+// @Description Register a new user and return JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body model.SignupInput true "New user info"
+// @Success 201 {object} model.AuthResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /signup [post]
 func Signup(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var newUser model.User
-	if err := c.BindJSON(&newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Input"})
+	var input model.SignupInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	var existingUser model.User
-	err := getUserCollection().FindOne(ctx, bson.M{"email": newUser.Email}).Decode(&existingUser)
+	err := getUserCollection().FindOne(ctx, bson.M{"email": input.Email}).Decode(&existingUser)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
-	newUser.Password = string(hashedPassword)
 
-	newUser.ID = primitive.NewObjectID()
+	newUser := model.User{
+		ID:       primitive.NewObjectID(),
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: string(hashedPassword),
+	}
+
 	_, err = getUserCollection().InsertOne(ctx, newUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
@@ -60,24 +76,36 @@ func Signup(c *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Login a user
+// @Description Authenticate user and return JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param credentials body model.LoginInput true "Login credentials"
+// @Success 200 {object} model.AuthResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /login [post]
 func Login(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var loginUser model.User
-	if err := c.BindJSON(&loginUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Input"})
+	var input model.LoginInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	var foundUser model.User
-	err := getUserCollection().FindOne(ctx, bson.M{"email": loginUser.Email}).Decode(&foundUser)
+	err := getUserCollection().FindOne(ctx, bson.M{"email": input.Email}).Decode(&foundUser)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(loginUser.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return

@@ -1,0 +1,327 @@
+definitions:
+  model.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/model.UserResponse'
+    type: object
+  model.CreateUserInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  model.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  model.SignupInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  model.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  model.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a sample CRUD API server.
+  title: CRUD API with Go and Gin
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login a user
+      tags:
+      - auth
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user and return JWT token
+      parameters:
+      - description: New user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.SignupInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /users:
+    get:
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a user with the input payload
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete a user from the database
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a user by ID
+      tags:
+      - users
+    get:
+      description: Retrieve a user by their MongoDB ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update name and email of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a user by ID
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
