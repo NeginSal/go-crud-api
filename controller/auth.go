@@ -5,6 +5,7 @@ import (
 	"crud-api-go/model"
 	"crud-api-go/utils"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +51,7 @@ func Signup(c *gin.Context) {
 	newUser := model.User{
 		ID:       primitive.NewObjectID(),
 		Name:     input.Name,
-		Email:    input.Email,
+		Email:    strings.ToLower(input.Email),
 		Password: string(hashedPassword),
 	}
 

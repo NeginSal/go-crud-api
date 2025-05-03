@@ -159,7 +159,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var updatedUser model.User
+	var updatedUser model.UpdateUserInput
 	if err := c.BindJSON(&updatedUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
