@@ -2,26 +2,43 @@ package middleware
 
 import (
 	"crud-api-go/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
+// AuthMiddleware verifies JWT and attaches user info to the context
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
+		authHeader := c.GetHeader("Authorization")
 
-		if tokenString == "" {
+		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
 			c.Abort()
 			return
 		}
 
-		_, err := utils.ValidateToken(tokenString)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
+		const bearerPrefix = "Bearer "
+		if !strings.HasPrefix(authHeader, bearerPrefix) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header format"})
 			c.Abort()
 			return
 		}
+
+		// Get the token part
+		tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
+
+		// Validate and parse the token
+		claims, err := utils.ValidateToken(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
+		// Add user info (like email) to the context
+		c.Set("userEmail", claims.Email)
 
 		c.Next()
 	}
