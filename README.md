@@ -50,21 +50,37 @@ The API is documented using swaggo/swag. To regenerate docs after changes : ``` 
 
 ## 📁 Project Structure
 go-crud-api/
+
 │
+
 ├── main.go
+
 ├── config/          ← Database settings and ...
+
 │   └── db.go
+
 ├── controller/      ← Controllers (logic related to APIs)
+
 │   └── user.go
+
 ├── model/           ← Data structures and models
+
 │   └── user.go
+
 ├── middleware/      ← Middlewares (like auth)
+
 │   └── authMiddleware.go
+
 ├── routes/          ← Routing
+
 │   └── userRoutes.go
+
 ├── utils/           ← Helper functions (like ValidateToken)
+
 │   └── jwt.go
+
 ├── go.mod / go.sum  ← Package information
+
 └── README.md        ← Project description 
 
 ## 🤝 Contributing
