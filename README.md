@@ -83,8 +83,14 @@ go-crud-api/
 
 └── README.md        ← Project description 
 
+
+## 📖 Learn More
+You can learn more about this project in this link [go-crud-api](https://dev.to/negin/a-crud-api-with-go-using-the-gin-framework-and-mongodb-379e).
+
 ## 🤝 Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+
 
 
 
