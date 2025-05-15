@@ -49,21 +49,23 @@ The API is documented using swaggo/swag. To regenerate docs after changes : ``` 
 - Use the returned token (JWT) in the Authorization header for protected routes: Authorization: Bearer <your-token>
 
 ## 📁 Project Structure
-.
-
-├── controller/     ( Route handlers)
-
-├── model/          ( Data models and DTOs)
-
-├── routes/         ( Route groups)
-
-├── utils/          ( JWT utilities)
-
-├── docs/           ( Swagger docs (auto-generated) )
-
-├── main.go         ( Entry point)
-
-└── go.mod
+go-crud-api/
+│
+├── main.go
+├── config/          ← Database settings and ...
+│   └── db.go
+├── controller/      ← Controllers (logic related to APIs)
+│   └── user.go
+├── model/           ← Data structures and models
+│   └── user.go
+├── middleware/      ← Middlewares (like auth)
+│   └── authMiddleware.go
+├── routes/          ← Routing
+│   └── userRoutes.go
+├── utils/           ← Helper functions (like ValidateToken)
+│   └── jwt.go
+├── go.mod / go.sum  ← Package information
+└── README.md        ← Project description 
 
 ## 🤝 Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
