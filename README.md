@@ -1,22 +1,45 @@
-# Go CRUD API
+## 🚀 Go CRUD API
 
 A simple and clean RESTful API built with **Golang (Gin)**, **MongoDB**, and **JWT Authentication**.  
-This API allows you to register, log in, and perform user management operations securely.
+Now fully Dockerized for better development and deployment experience.  
+This API allows you to **register**, **log in**, and **manage users securely**.
 
 ---
 
 ## 📦 Features
 
-- User registration and login with hashed passwords
-- JWT-based authentication
-- Full CRUD operations for users
-- Input validation using `go-playground/validator`
-- Swagger documentation with `swaggo/gin-swagger`
-- MongoDB integration using `mongo-driver`
+- ✅ User registration and login with hashed passwords (bcrypt)
+- ✅ JWT-based authentication middleware
+- ✅ Full CRUD operations on users
+- ✅ Input validation with `go-playground/validator`
+- ✅ Swagger documentation (`swaggo/gin-swagger`)
+- ✅ MongoDB integration using `mongo-driver`
+- ✅ Docker + Docker Compose support
 
 ---
 
-## 🚀 Getting Started
+## 🐳 Run with Docker (Recommended)
+
+### 1. Clone the repository
+
+```
+git clone https://github.com/NeginSal/go-crud-api.git
+cd go-crud-api
+```
+### 2. Set environment variables in .env file
+```
+PORT=8080
+MONGO_URI=mongodb://mongo:27017
+JWT_SECRET=your_super_secret_key
+```
+### 3. Run with Docker Compose
+```
+docker-compose up --build
+```
+Access the API at: `http://localhost:8080`
+Swagger UI at: `http://localhost:8080/swagger/index.html`
+
+
 
 ### 1. Clone the repository
 
@@ -89,8 +112,3 @@ You can learn more about this project in this link [go-crud-api](https://dev.to/
 
 ## 🤝 Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
-
-
-
-

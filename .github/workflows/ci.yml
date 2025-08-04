@@ -1,6 +1,4 @@
-# .github/workflows/ci.yml
-
-name: Go CI/CD Pipeline
+name: Run go vet and go fmt
 
 on:
   push:
@@ -9,38 +7,20 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-check:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code from GitHub
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      # Set up Go
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.22
 
-      # Verify Go code formatting
-      - name: Check code formatting
-        run: go fmt ./...
+    - name: Run go fmt
+      run: go fmt ./...
 
-      # Run go vet to find potential issues
-      - name: Run go vet
-        run: go vet ./...
-
-      # 🔒 Skip tests for now
-      # - name: Run tests
-      #   run: go test ./...
-
-      # ✅ Optional: Build Docker image (only runs if needed)
-      - name: Build Docker image (optional)
-        if: false # Set to true later
-        run: docker build -t go-crud-api .
-
-      # 🚀 Optional CD to Railway (disabled for now)
-      - name: Deploy to Railway (future)
-        if: false
-        run: echo "CD step is disabled until network access is available."
+    - name: Run go vet
+      run: go vet ./...
